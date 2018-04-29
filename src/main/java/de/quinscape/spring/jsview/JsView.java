@@ -3,7 +3,7 @@ package de.quinscape.spring.jsview;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.template.BaseTemplate;
 import de.quinscape.spring.jsview.util.JSONUtil;
-import de.quinscape.spring.jsview.util.WebpackAssets;
+import de.quinscape.spring.jsview.asset.WebpackAssets;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

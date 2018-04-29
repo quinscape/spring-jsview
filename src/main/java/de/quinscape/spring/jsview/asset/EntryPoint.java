@@ -1,4 +1,4 @@
-package de.quinscape.spring.jsview.util;
+package de.quinscape.spring.jsview.asset;
 
 import org.svenson.AbstractDynamicProperties;
 import org.svenson.JSONParameter;

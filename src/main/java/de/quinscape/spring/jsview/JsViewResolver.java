@@ -4,7 +4,7 @@ import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
 import de.quinscape.spring.jsview.template.BaseTemplate;
-import de.quinscape.spring.jsview.util.WebpackAssets;
+import de.quinscape.spring.jsview.asset.WebpackAssets;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
 

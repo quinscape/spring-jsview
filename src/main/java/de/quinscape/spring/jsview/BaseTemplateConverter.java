@@ -11,11 +11,11 @@ class BaseTemplateConverter
     implements ResourceConverter<BaseTemplate>
 {
     @Override
-    public BaseTemplate readStream(InputStream data)
+    public BaseTemplate readStream(InputStream inputStream)
     {
         try
         {
-            final String template = IOUtils.toString(data, BaseTemplate.UTF_8);
+            final String template = IOUtils.toString(inputStream, BaseTemplate.UTF_8);
             return new BaseTemplate(template);
         }
         catch (IOException e)

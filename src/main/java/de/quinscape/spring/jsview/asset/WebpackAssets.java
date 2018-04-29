@@ -1,5 +1,6 @@
-package de.quinscape.spring.jsview.util;
+package de.quinscape.spring.jsview.asset;
 
+import de.quinscape.spring.jsview.util.Util;
 import org.svenson.JSONParameters;
 import org.svenson.JSONTypeHint;
 

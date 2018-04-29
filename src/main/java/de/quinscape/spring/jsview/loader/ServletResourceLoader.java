@@ -10,8 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Loads servlet context resources. If the servlet context can be resolved to an actual file system path,
- * the loader with use hot-reloadable {@link FileResourceHandle}s, otherwise it will use {@link StreamResourceHandle}s.
+ * Loads servlet context resources.
+ * <p>
+ *  If the servlet context can be resolved to an actual file system path ("exploded WAR deployment"), the loader with use
+ *  hot-reloadable {@link FileResourceHandle}s, otherwise it will use {@link StreamResourceHandle}s.
+ *  </p>
  */
 public class ServletResourceLoader
     implements ResourceChangeListener, ResourceLoader
@@ -77,14 +80,14 @@ public class ServletResourceLoader
 
 
     @Override
-    public <T> ResourceHandle<T> getResourceHandle(String path, ResourceConverter<T> loader)
+    public <T> ResourceHandle<T> getResourceHandle(String path, ResourceConverter<T> converter)
     {
         if (path == null)
         {
             throw new IllegalArgumentException("path can't be null");
         }
 
-        if (loader == null)
+        if (converter == null)
         {
             throw new IllegalArgumentException("loader can't be null");
         }
@@ -93,11 +96,11 @@ public class ServletResourceLoader
 
         if (useFileAccess)
         {
-            handle = new FileResourceHandle(new File(basePath , path.replace('/', File.separatorChar)), loader);
+            handle = new FileResourceHandle(new File(basePath , path.replace('/', File.separatorChar)), converter);
         }
         else
         {
-            handle = new StreamResourceHandle(servletContext, resourcePath + ensureLeadingSlash(path), loader);
+            handle = new StreamResourceHandle(servletContext, resourcePath + ensureLeadingSlash(path), converter);
         }
 
         final ResourceHandle<T> existing = (ResourceHandle<T>) resourceHandles.putIfAbsent(path, handle);

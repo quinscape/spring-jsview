@@ -24,12 +24,12 @@ public class JSONResourceConverter<T>
     }
 
     @Override
-    public T readStream(InputStream data)
+    public T readStream(InputStream inputStream)
     {
         return JSONUtil.DEFAULT_PARSER.parse(
             cls,
             new InputStreamSource(
-                data,
+                inputStream,
                 true
             )
         );
