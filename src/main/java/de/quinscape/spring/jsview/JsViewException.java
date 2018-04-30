@@ -2,7 +2,6 @@ package de.quinscape.spring.jsview;
 
 /**
  * Generic js view exception.
- * 
  */
 public class JsViewException
     extends RuntimeException

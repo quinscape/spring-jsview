@@ -1,9 +1,9 @@
 package de.quinscape.spring.jsview;
 
+import de.quinscape.spring.jsview.asset.WebpackAssets;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.template.BaseTemplate;
 import de.quinscape.spring.jsview.util.JSONUtil;
-import de.quinscape.spring.jsview.asset.WebpackAssets;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +24,7 @@ import java.util.Set;
  * Render as HTML base template with an embedded JSON data block.
  *
  */
-public class JsView
+public final class JsView
     implements View
 {
 
@@ -38,12 +37,11 @@ public class JsView
     private final ResourceHandle<BaseTemplate> baseTemplateHandle;
 
 
-    private final Set<JsViewDataProvider> viewDataProviders;
+    private final Set<JsViewProvider> viewDataProviders;
 
     private final String entryPoint;
 
     private final Locale locale;
-
 
     private final WebpackAssets webpackAssets;
 
@@ -51,7 +49,7 @@ public class JsView
     public JsView(
         WebpackAssets webpackAssets,
         ResourceHandle<BaseTemplate> baseTemplateHandle,
-        Set<JsViewDataProvider> viewDataProviders,
+        Set<JsViewProvider> viewDataProviders,
         String entryPoint,
         Locale locale
     )
@@ -77,30 +75,32 @@ public class JsView
         HttpServletResponse response
     ) throws Exception
     {
-        Map<String,Object> viewData = new HashMap<>();
-
-        for (JsViewDataProvider provider : viewDataProviders)
-        {
-            viewData.putAll(provider.provide(entryPoint, map, request));
-        }
-
-        response.setContentType(MediaType.TEXT_HTML_VALUE);
-        response.setCharacterEncoding("UTF-8");
 
         ServletOutputStream os = null;
         try
         {
             // create a new model map for the template
-            final Map<String, Object> templateModel = new HashMap<>();
+            final JsViewContext ctx = new DefaultJsViewContext(this, map, request);
+
+
+            response.setContentType(MediaType.TEXT_HTML_VALUE);
+            response.setCharacterEncoding("UTF-8");
+
             // containing the context path
-            templateModel.put("CONTEXT_PATH", request.getContextPath());
+            ctx.setPlaceholderValue("CONTEXT_PATH", request.getContextPath());
+            ctx.setPlaceholderValue("LANG", locale.getLanguage());
             // and the JSON for our current spring model
-            templateModel.put("VIEW_DATA", JSONUtil.DEFAULT_GENERATOR.forValue(viewData));
-            templateModel.put("ASSETS", webpackAssets.renderAssets(request, entryPoint));
+            ctx.setPlaceholderValue("ASSETS", webpackAssets.renderAssets(request, entryPoint));
+
+            for (JsViewProvider provider : viewDataProviders)
+            {
+                provider.provide(ctx);
+            }
+            ctx.setPlaceholderValue("VIEW_DATA", JSONUtil.DEFAULT_GENERATOR.forValue(ctx.getViewData()));
 
             // evaluate and write template
             os = response.getOutputStream();
-            baseTemplateHandle.getContent().write(os, templateModel);
+            baseTemplateHandle.getContent().write(os, ctx.getPlaceHolderValues());
             os.flush();
         }
         catch (IOException e)
@@ -116,5 +116,29 @@ public class JsView
             // log non IO exception
             log.error("Error sending view", e);
         }
+    }
+
+
+    public ResourceHandle<BaseTemplate> getBaseTemplateHandle()
+    {
+        return baseTemplateHandle;
+    }
+
+
+    public String getEntryPoint()
+    {
+        return entryPoint;
+    }
+
+
+    public Locale getLocale()
+    {
+        return locale;
+    }
+
+
+    public WebpackAssets getWebpackAssets()
+    {
+        return webpackAssets;
     }
 }

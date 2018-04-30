@@ -1,16 +1,14 @@
 package de.quinscape.spring.jsview;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Provides Spring model data as js view data.
+ * Provides (partial) Spring model data as js view data.
  */
 public class ModelMapProvider
-    implements JsViewDataProvider
+    implements JsViewProvider
 {
     private final Set<String> keys;
 
@@ -19,41 +17,34 @@ public class ModelMapProvider
      */
     public ModelMapProvider()
     {
-        this(Collections.emptySet());
+        keys = Collections.emptySet();
     }
 
     /**
      * Creates a model map provider that provides a selection of model map keys as js view data.
      *
-     * @param keys      keys to send to send as js view data
+     * @param keys      keys to send to send as js view data, must not be null or empty.
      */
     public ModelMapProvider(Set<String> keys)
     {
+        if (keys == null || keys.size() == 0)
+        {
+            throw new IllegalArgumentException("keys can't be null or empty");
+        }
+
         this.keys = keys;
     }
 
     @Override
-    public Map<String, Object> provide(
-        String entryPoint,
-        Map<String, ?> model,
-        HttpServletRequest request
-    )
+    public void provide(JsViewContext context)
     {
-        Map<String, Object> map;
+        final Map<String, ?> springModel = context.getSpringModel();
 
-        if (keys.size() == 0)
-        {
-            map = (Map<String, Object>) model;
-        }
-        else
-        {
-            map = new HashMap<>();
-            for (String key : keys)
-            {
-                map.put(key, model.get(key));
-            }
-        }
+        final Set<String> keysToCopy = keys.size() > 0 ? keys : springModel.keySet();
 
-        return map;
+        for (String key : keysToCopy)
+        {
+            context.provideViewData(key, springModel.get(key));
+        }
     }
 }

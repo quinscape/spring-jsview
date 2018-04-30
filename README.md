@@ -16,6 +16,8 @@ On the server-side, this library provides a ViewResolver that needs to be config
 to serve Javascript views.
 
 ```java
+package de.quinscape.eamodern.config;
+
 import de.quinscape.spring.jsview.JsViewResolver;
 import de.quinscape.spring.jsview.ModelMapProvider;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
@@ -24,36 +26,37 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.Collections;
+import javax.servlet.ServletContext;
 
 @Configuration
 public class WebConfiguration
     implements WebMvcConfigurer
 {
-    private final ResourceLoader resourceLoader;
+    private final ServletContext servletContext;
 
+    private final ResourceLoader resourceLoader;
 
     @Autowired
     public WebConfiguration(
+        ServletContext servletContext,
         ResourceLoader resourceLoader
     )
     {
+        this.servletContext = servletContext;
         this.resourceLoader = resourceLoader;
     }
 
     @Override
     public void configureViewResolvers(ViewResolverRegistry registry)
     {
-
-
         registry.viewResolver(
-            new JsViewResolver(
-                Collections.singleton(
-                    new ModelMapProvider()
-                ),
-                resourceLoader,
-                 "WEB-INF/template.html"
-            )
+            JsViewResolver.newResolver(servletContext, "WEB-INF/template.html")
+                .withResourceLoader(resourceLoader)
+                .withViewDataProvider(
+                    new ModelMapProvider(
+                    )
+                )
+                .build()
         );
     }
 }
@@ -115,7 +118,7 @@ There is some very simple placeholder variables that get replaced :
 
  * CONTEXT_PATH : The current servlet context path of the application
  * VIEW_DATA : An optional view data JSON block 
- * ASSETS : the webpack build assets for the current end point 
+ * ASSETS : HTML markup including the webpack build assets for the current end point 
  
 ## Webpack configuration
 
@@ -194,37 +197,52 @@ module.exports = {
 
 ```
 
-# View Data Providers
+## View Data Providers
 
-The JsViewDataProvider interface can be used to provide named java objects that get converted into JSON via
-svenson.
+The JsViewProvider interface can be used to customize the behavior of the jsview. It allows to add objects to the 
+view data block and to introduce custom placeholders. 
 
 ```java 
 package de.quinscape.spring.jsview;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
-
 /**
- * Implemented by classes providing preloaded data to js views.
+ * Implemented by classes providing preloaded data or template placeholders to the js views.
  */
-public interface JsViewDataProvider
+public interface JsViewProvider
 {
     /**
-     * Provides a map object that will be jsonified for the client side.
+     * Uses the received context object to declare view data or template placeholder content.
      *
-     * @param entryPoint        webpack entry point name
-     * @param model             spring's model map
-     * @param request           HTTP servlet request
+     * @param context       js view context
      *
-     * @return  data map
-     * 
-     * @throws Exception    if things go wrong
+     * @throws Exception    if something goes wrong
      */
-    Map<String,Object> provide(String entryPoint, Map<String, ?> model, HttpServletRequest request) throws Exception;
+    void provide(JsViewContext context) throws Exception;
 }
 ```
 
+```java 
+package de.quinscape.spring.jsview;
+
+/**
+ * Implemented by classes providing preloaded data or template placeholders to the js views.
+ */
+public interface JsViewProvider
+{
+    /**
+     * Uses the received context object to declare view data or template placeholder content.
+     *
+     * @param context       js view context
+     *
+     * @throws Exception    if something goes wrong
+     */
+    void provide(JsViewContext context) throws Exception;
+}
+```
+
+### Existing Providers
+
 The library contains the ModelMapProvider which provides data from the Spring Controller ModelMap. 
 
-The domainql project contains a JsViewDataProvider for preloaded graphql queries.
+The domainql project contains a JsViewProvider for preloaded graphql queries.
+
