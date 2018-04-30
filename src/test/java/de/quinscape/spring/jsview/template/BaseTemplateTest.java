@@ -27,17 +27,17 @@ public class BaseTemplateTest
         assertThat(render("\\\\$A", map("A", "foo")), is("\\$A"));                                                              
 
     }
-    private static Map<String,Object> map(String... keysAndValues)
+    private static Map<String,Object> map(String... kv)
     {
-        if ( (keysAndValues.length & 1) != 0)
+        if ( (kv.length & 1) != 0)
         {
             throw new IllegalArgumentException("Map arguments must be an even number: key, value pairs");
         }
 
         Map<String, Object> map = new HashMap<>();
-        for (int i = 0; i < keysAndValues.length; i += 2)
+        for (int i = 0; i < kv.length; i += 2)
         {
-            map.put(keysAndValues[i], keysAndValues[i + 1]);
+            map.put(kv[i], kv[i + 1]);
         }
         return map;
     }

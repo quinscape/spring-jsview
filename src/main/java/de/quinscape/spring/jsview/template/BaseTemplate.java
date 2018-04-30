@@ -108,6 +108,5 @@ public final class BaseTemplate
         {
             part.write(os, model);
         }
-        os.flush();
     }
 }
