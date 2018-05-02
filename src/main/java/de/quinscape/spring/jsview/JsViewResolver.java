@@ -123,7 +123,7 @@ public final class JsViewResolver
                 }
                 catch (IOException e)
                 {
-                    throw new JsViewException(e);
+                    throw new JsViewException("Error creating default resource loader", e);
                 }
             }
             return new JsViewResolver(
