@@ -9,8 +9,70 @@ Integrating a Javascript client side view implementation with optional data prel
 offers an attractive way to use Javascript SPA content as UI frontend for a Spring 
 Boot/WebMVC application and integrate that with the existing Java and Spring eco system.
 
+## Overview
+
+*Spring-jsview* integrates into the view system of Spring WebMVC. In contrast to other 
+view implementations, spring-jsview primarily does not render HTML on the server-side.
+
+The view implementation aggregates view data from several user configurable sources which
+it embeds as JSON data block inside a minimal HTML template that defines the most
+basic HTML structure and loads JavaScript- and CSS-Libraries.
+
+The views of *spring-jsview* correspond to Webpack entry points on the client side. These
+end points are responsible for creating the actual markup from the embedded data.
+
+
+## Simple Views
+
+An end-point can just render a simple view that works just like the normal 
+Spring WebMVC views. For example in the DomainQL starter that integrates into 
+Spring Security, we have a 
+[simple login view](https://github.com/quinscape/domainqlstarter/blob/master/src/main/js/login.js) 
+that we need to show if the security context requires it.
+
+## SPA Views 
  
-## Usage
+The other alternative is to have the end point render a 
+[single-page application / SPA](https://en.wikipedia.org/wiki/Single-page_application).
+
+The Spring-WebMVC controller for such a view must define an URI space within the 
+application URI space in which the SPA runs. 
+ 
+Here is one [controller method from the domainqlstarter](https://github.com/quinscape/domainqlstarter/blob/master/src/main/java/de/quinscape/domainqlstarter/runtime/controller/JsEntryPointController.java#L9-L13)
+
+```java
+    @RequestMapping("/app/**")
+    public String serveApplicationEndpoint()
+    {
+        return "main";
+    }
+```
+
+The controller method is mapped to `/app/**` which means that every URL below /app will 
+be routed to the "app" end-point it declares.
+
+On the client-side the routing-library of course has to consider the chosen URI prefix:
+ 
+```jsx harmony
+<ConnectedRouter history={ history }>
+    <Switch>
+        <Route exact path="/app/" component={ Home }/>
+        <Route exact path="/app/foo/" component={ FooAdmin }/>
+        <Route path="/app/foo/:id/:name" component={ FooAdmin }/>
+        <Route path="/app/lazy" component={ LazyLoader }/>
+        <Route path="/app/about" component={ About }/>
+        <Route path="/app/admin" component={ Admin }/>
+    </Switch>
+</ConnectedRouter>
+```
+( from [domainqlstarter: src/main/js/main/App.js](https://github.com/quinscape/domainqlstarter/blob/master/src/main/js/main/App.js#L93-L100))
+
+The SPA can still enjoy the benefits of the initial data injection which is repeated any time
+the user (re)loads an URL within the SPA space. 
+
+The two kinds of views can be mixed and matched like needed.  
+
+## Setup
 
 On the server-side, this library provides a ViewResolver that needs to be configured
 to serve Javascript views.
@@ -54,6 +116,8 @@ public class WebConfiguration
                 .withResourceLoader(resourceLoader)
                 .withViewDataProvider(
                     new ModelMapProvider(
+                        // keys of the Spring model to use for the initial data                            
+                        Collections.singleton("value")
                     )
                 )
                 .build()
