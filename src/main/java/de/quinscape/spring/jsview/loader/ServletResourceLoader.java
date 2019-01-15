@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContext;
-import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -12,34 +11,28 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Loads servlet context resources.
  * <p>
- *  If the servlet context can be resolved to an actual file system path ("exploded WAR deployment"), the loader with use
- *  hot-reloadable {@link FileResourceHandle}s, otherwise it will use {@link StreamResourceHandle}s.
+ *  If the servlet context can be resolved to an actual file system path ("exploded WAR deployment"), the loader will delegate
+ *  to a {@link FileResourceLoader} otherwise it will issue non-hot-reloadable {@link StreamResourceHandle}s.
  *  </p>
  */
 public class ServletResourceLoader
-    implements ResourceChangeListener, ResourceLoader
+    implements ResourceLoader
 {
     private final static Logger log = LoggerFactory.getLogger(ServletResourceLoader.class);
 
     private final ServletContext servletContext;
 
+    private final FileResourceLoader fileLoader;
+
     private final String resourcePath;
-
-    private final boolean useFileAccess;
-
-    private final Java7NIOResourceWatcher watchDir;
-
-    private final String basePath;
 
     private ConcurrentMap<String, ResourceHandle<?>> resourceHandles = new ConcurrentHashMap<>();
 
     public ServletResourceLoader(ServletContext servletContext, String resourcePath, boolean recursive) throws IOException
     {
+        String basePath = servletContext.getRealPath(resourcePath);
+        boolean useFileAccess = basePath != null;
 
-        this.servletContext = servletContext;
-
-        this.basePath = servletContext.getRealPath(resourcePath);
-        useFileAccess = basePath != null;
 
         if (log.isInfoEnabled())
         {
@@ -51,36 +44,24 @@ public class ServletResourceLoader
             );
         }
 
+        this.servletContext = servletContext;
+        this.resourcePath = resourcePath;
+
         if (useFileAccess)
         {
-            this.resourcePath = null;
-
-            final File baseDir = new File(basePath);
-            if (!baseDir.exists())
-            {
-                throw new IllegalStateException(basePath + " does not exist");
-            }
-
-            if (!baseDir.isDirectory())
-            {
-                throw new IllegalStateException(basePath + " is not a directory");
-            }
-
-            watchDir = new Java7NIOResourceWatcher(basePath, recursive);
-            watchDir.register(this);
-            watchDir.start();
+            fileLoader = new FileResourceLoader(basePath, recursive);
         }
         else
         {
-            this.resourcePath = resourcePath;
-            watchDir = null;
+            fileLoader = null;
         }
     }
 
 
-
     @Override
-    public <T> ResourceHandle<T> getResourceHandle(String path, ResourceConverter<T> converter)
+    public <T> ResourceHandle<T> getResourceHandle(
+        String path, ResourceConverter<T> converter
+    )
     {
         if (path == null)
         {
@@ -92,16 +73,12 @@ public class ServletResourceLoader
             throw new IllegalArgumentException("loader can't be null");
         }
 
-        ResourceHandle<T> handle;
+        if (fileLoader != null)
+        {
+            return fileLoader.getResourceHandle(path, converter);
+        }
 
-        if (useFileAccess)
-        {
-            handle = new FileResourceHandle(new File(basePath , path.replace('/', File.separatorChar)), converter);
-        }
-        else
-        {
-            handle = new StreamResourceHandle(servletContext, resourcePath + ensureLeadingSlash(path), converter);
-        }
+        final ResourceHandle<T> handle = new StreamResourceHandle(servletContext, resourcePath + ensureLeadingSlash(path), converter);
 
         final ResourceHandle<T> existing = (ResourceHandle<T>) resourceHandles.putIfAbsent(path, handle);
         if (existing != null)
@@ -114,7 +91,6 @@ public class ServletResourceLoader
         }
     }
 
-
     private String ensureLeadingSlash(String path)
     {
         if (path.startsWith("/"))
@@ -124,28 +100,12 @@ public class ServletResourceLoader
         return "/" + path;
     }
 
-
     @Override
     public void shutDown()
     {
-        if (watchDir != null)
+        if (fileLoader != null)
         {
-            log.info("Shutting down");
-
-            watchDir.shutDown();
-        }
-    }
-
-
-    @Override
-    public void onResourceChange(ResourceEvent resourceEvent, String rootPath, String resourcePath)
-    {
-        log.debug("Resource Event: {} {}", resourceEvent, resourcePath);
-
-        final ResourceHandle<?> handle = resourceHandles.get(resourcePath);
-        if (handle != null)
-        {
-            handle.flush();
+            fileLoader.shutDown();
         }
     }
 }
