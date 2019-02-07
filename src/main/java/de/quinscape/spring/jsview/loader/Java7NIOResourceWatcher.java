@@ -1,5 +1,6 @@
 package de.quinscape.spring.jsview.loader;
 
+import de.quinscape.spring.jsview.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,7 @@ public class Java7NIOResourceWatcher
 //        }
 
         String path = child.getPath();
-        final String resourcePath = path.substring(basePathLength);
+        final String resourcePath = Util.path(path.substring(basePathLength));
         for (ResourceChangeListener listener : listeners)
         {
             log.debug("Signaling {} for {} ({})", listener, path, resourceEvent);
