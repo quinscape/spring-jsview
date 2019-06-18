@@ -16,6 +16,7 @@ public class StreamResourceHandle<T>
 {
     private final static Logger log = LoggerFactory.getLogger(StreamResourceHandle.class);
 
+    private final String path;
     private final T content;
 
     public StreamResourceHandle(ServletContext servletContext, String path, ResourceConverter<T> processor)
@@ -25,6 +26,7 @@ public class StreamResourceHandle<T>
             log.debug("Create StreamResourceHandle for {} (processor = {})", path, processor);
         }
 
+        this.path = path;
         final InputStream is = servletContext.getResourceAsStream(path);
         content = processor.readStream(is);
     }
@@ -54,5 +56,14 @@ public class StreamResourceHandle<T>
     public void flush()
     {
         throw new UnsupportedOperationException("Stream resource handle should never be flushed");
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + ": "
+            + "path = " + path 
+            ;
     }
 }

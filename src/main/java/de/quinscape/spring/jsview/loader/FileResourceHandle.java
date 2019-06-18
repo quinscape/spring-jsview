@@ -60,7 +60,7 @@ public class FileResourceHandle<T>
                     {
                         if (log.isDebugEnabled())
                         {
-                            log.debug("File {} does not exist", file.getPath(), processor);
+                            log.debug("File {} does not exist", file.getPath());
                         }
 
                         content = DOES_NOT_EXIST;
@@ -98,5 +98,14 @@ public class FileResourceHandle<T>
         }
 
         content = null;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + ": "
+            + "file = " + file.getPath()
+            ;
     }
 }
