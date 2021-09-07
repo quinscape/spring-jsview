@@ -58,12 +58,12 @@ public class WebpackAssets
             {
                 throw new IllegalStateException("Entry point '" +entryPointName + "' not found");
             }
-            final List<String> assets = entryPoint.getAssets();
-            for (String asset : assets)
+            final List<Map<String,Object>> assets = entryPoint.getAssets();
+            for (Map<String, Object> asset : assets)
             {
                 renderAsset(
                     buff,
-                    contextPath + "/js/" + asset
+                    contextPath + "/js/" + asset.get("name")
                 );
 
             }
