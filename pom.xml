@@ -4,7 +4,7 @@
 
     <groupId>de.quinscape</groupId>
     <artifactId>spring-jsview</artifactId>
-    <version>0.9</version>
+    <version>0.10-SNAPSHOT</version>
 
     <name>Spring WebMVC JavaScript Views</name>
     <description>
@@ -114,7 +114,7 @@
         <connection>scm:git:https://github.com/quinscape/spring-jsview.git</connection>
         <developerConnection>scm:git:git@github.com:quinscape/spring-jsview.git</developerConnection>
         <url>https://github.com/quinscape/spring-jsview/</url>
-        <tag>spring-jsview-0.9</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <build>
