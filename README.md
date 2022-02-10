@@ -260,6 +260,9 @@ module.exports = {
 };
 
 ```
+## NPM: jsview-bootstrap
+
+The NPM library ["jsview-bootstrap"](https://github.com/quinscape/jsview-bootstrap) is a mini-library to render React views from a jsview document with embedded data.
 
 ## View Data Providers
 
