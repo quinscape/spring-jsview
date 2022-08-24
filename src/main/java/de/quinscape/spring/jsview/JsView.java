@@ -79,9 +79,9 @@ public final class JsView
         ServletOutputStream os = null;
         try
         {
+
             // create a new model map for the template
             final JsViewContext ctx = new DefaultJsViewContext(this, map, request);
-
 
             response.setContentType(MediaType.TEXT_HTML_VALUE);
             response.setCharacterEncoding("UTF-8");
@@ -98,17 +98,20 @@ public final class JsView
             }
             ctx.setPlaceholderValue("VIEW_DATA", JSONUtil.DEFAULT_GENERATOR.forValue(ctx.getViewData()));
 
-            // evaluate and write template
-            os = response.getOutputStream();
-            baseTemplateHandle.getContent().write(os, ctx.getPlaceHolderValues());
-            os.flush();
-        }
-        catch (IOException e)
-        {
-            IOUtils.closeQuietly(os);
+            try
+            {
+                // evaluate and write template
+                os = response.getOutputStream();
+                baseTemplateHandle.getContent().write(os, ctx.getPlaceHolderValues());
+                os.flush();
+            }
+            catch (IOException e)
+            {
+                IOUtils.closeQuietly(os);
 
-            // these are most commonly browser windows being closed before the last request is done
-            log.debug("Error sending view", e);
+                // these are most commonly browser windows being closed before the last request is done
+                log.debug("Error sending view", e);
+            }
         }
         catch (Exception e)
         {
