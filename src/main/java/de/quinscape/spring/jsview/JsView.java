@@ -113,8 +113,8 @@ public final class JsView
         catch (Exception e)
         {
             IOUtils.closeQuietly(os);
-            // log non IO exception
-            log.error("Error sending view", e);
+
+            throw new JsViewRenderingException("Error rendering view", e);
         }
     }
 
