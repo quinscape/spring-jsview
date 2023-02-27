@@ -1,6 +1,6 @@
 package de.quinscape.spring.jsview;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
