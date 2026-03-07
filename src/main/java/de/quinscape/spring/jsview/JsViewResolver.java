@@ -1,11 +1,13 @@
 package de.quinscape.spring.jsview;
 
-import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
 import de.quinscape.spring.jsview.loader.ServletResourceLoader;
 import de.quinscape.spring.jsview.template.BaseTemplate;
-import de.quinscape.spring.jsview.asset.WebpackAssets;
+import de.quinscape.spring.jsview.webpack.WebpackAssetProvider;
+import de.quinscape.spring.jsview.webpack.WebpackAssets;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
@@ -23,9 +25,8 @@ import java.util.Set;
 public final class JsViewResolver
     implements ViewResolver, Ordered
 {
-    private static final String WEBPACK_ASSETS_PATH = "js/webpack-assets.json";
 
-    private final ResourceHandle<WebpackAssets> webpackAssetsHandle;
+    private final AssetProvider assetProvider;
 
     private final ResourceHandle<BaseTemplate> baseTemplateHandle;
 
@@ -38,14 +39,11 @@ public final class JsViewResolver
         Set<JsViewProvider> viewDataProviders,
         ResourceLoader resourceLoader,
         String baseTemplatePath,
-        int order
+        int order,
+        AssetProvider assetProvider
     )
     {
-        webpackAssetsHandle =
-            resourceLoader.getResourceHandle(
-                WEBPACK_ASSETS_PATH,
-                new JSONResourceConverter<>(WebpackAssets.class)
-            );
+        this.assetProvider = assetProvider;
         this.viewDataProviders = viewDataProviders;
         this.order = order;
 
@@ -58,14 +56,13 @@ public final class JsViewResolver
 
 
     @Override
-    public View resolveViewName( String entryPoint, Locale locale) throws IOException
+    public @Nullable View resolveViewName( @NonNull String entryPoint, @NonNull Locale locale) throws IOException
     {
-        final WebpackAssets assets = webpackAssetsHandle.getContent();
 
-        if (assets.hasEntryPoint(entryPoint) || entryPoint.startsWith(WebpackAssets.RESOURCES_PREFIX))
+        if (assetProvider.hasEntryPoint(entryPoint) || entryPoint.startsWith(WebpackAssetProvider.RESOURCES_PREFIX))
         {
             return new JsView(
-                assets,
+                assetProvider,
                 baseTemplateHandle,
                 viewDataProviders,
                 entryPoint,
@@ -100,6 +97,8 @@ public final class JsViewResolver
 
         private String baseTemplatePath;
 
+        private AssetProvider assetProvider = null;
+
         private int order = 0;
 
 
@@ -108,6 +107,10 @@ public final class JsViewResolver
             if (baseTemplatePath == null)
             {
                 throw new IllegalStateException("baseTemplatePath can't be null");
+            }
+            if (assetProvider == null)
+            {
+                assetProvider = new WebpackAssetProvider(this.resourceLoader);
             }
 
             final ResourceLoader resourceLoader;
@@ -127,10 +130,7 @@ public final class JsViewResolver
                 }
             }
             return new JsViewResolver(
-                Collections.unmodifiableSet(viewDataProviders),
-                resourceLoader,
-                baseTemplatePath,
-                order
+                Collections.unmodifiableSet(viewDataProviders), resourceLoader, baseTemplatePath, order, assetProvider
             );
         }
 
@@ -206,6 +206,21 @@ public final class JsViewResolver
         public Builder withResourceLoader(ResourceLoader resourceLoader)
         {
             this.resourceLoader = resourceLoader;
+            return this;
+        }
+
+
+        /**
+         * Configures the asset provider to use for the view provider. The default is {@link WebpackAssetProvider} which
+         * only works with webpack.
+         * 
+         * @param assetProvider     asset provider to use
+         *                          
+         * @return  this builder
+         */
+        public Builder withAssetProvider(AssetProvider assetProvider)
+        {
+            this.assetProvider = assetProvider;
             return this;
         }
 

@@ -1,6 +1,6 @@
 package de.quinscape.spring.jsview;
 
-import de.quinscape.spring.jsview.asset.WebpackAssets;
+import de.quinscape.spring.jsview.webpack.WebpackAssets;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.template.BaseTemplate;
 import de.quinscape.spring.jsview.util.JSONUtil;
@@ -43,11 +43,11 @@ public final class JsView
 
     private final Locale locale;
 
-    private final WebpackAssets webpackAssets;
+    private final AssetProvider assetProvider;
 
 
     public JsView(
-        WebpackAssets webpackAssets,
+        AssetProvider assetProvider,
         ResourceHandle<BaseTemplate> baseTemplateHandle,
         Set<JsViewProvider> viewDataProviders,
         String entryPoint,
@@ -57,7 +57,7 @@ public final class JsView
         this.viewDataProviders = viewDataProviders;
         this.entryPoint = entryPoint;
         this.locale = locale;
-        this.webpackAssets = webpackAssets;
+        this.assetProvider = assetProvider;
         this.baseTemplateHandle = baseTemplateHandle;
     }
 
@@ -90,7 +90,7 @@ public final class JsView
             ctx.setPlaceholderValue("CONTEXT_PATH", request.getContextPath());
             ctx.setPlaceholderValue("LANG", locale.getLanguage());
             // and the JSON for our current spring model
-            ctx.setPlaceholderValue("ASSETS", webpackAssets.renderAssets(request, entryPoint));
+            ctx.setPlaceholderValue("ASSETS", assetProvider.renderAssets(request, entryPoint));
 
             for (JsViewProvider provider : viewDataProviders)
             {
@@ -139,9 +139,4 @@ public final class JsView
         return locale;
     }
 
-
-    public WebpackAssets getWebpackAssets()
-    {
-        return webpackAssets;
-    }
 }

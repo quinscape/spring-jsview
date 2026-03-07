@@ -1,7 +1,6 @@
-package de.quinscape.spring.jsview.asset;
+package de.quinscape.spring.jsview.webpack;
 
 import org.svenson.AbstractDynamicProperties;
-import org.svenson.JSONParameter;
 
 import java.util.List;
 import java.util.Map;
