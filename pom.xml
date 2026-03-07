@@ -4,7 +4,7 @@
 
     <groupId>de.quinscape</groupId>
     <artifactId>spring-jsview</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
 
     <name>Spring WebMVC JavaScript Views</name>
     <description>
