@@ -60,6 +60,12 @@ public class FileResourceLoader
             throw new IllegalArgumentException("loader can't be null");
         }
 
+        // cut off leading slash to prevent lookup errors in onResourceChange
+        if (path.startsWith("/"))
+        {
+            path = path.substring(1);
+        }
+
         ResourceHandle<T> handle;
 
         handle = new FileResourceHandle(new File(basePath, path.replace('/', File.separatorChar)), converter);
