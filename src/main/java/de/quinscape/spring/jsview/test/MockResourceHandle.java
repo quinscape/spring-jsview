@@ -29,6 +29,13 @@ public class MockResourceHandle<T>
 
 
     @Override
+    public boolean isEager()
+    {
+        return false;
+    }
+
+
+    @Override
     public T getContent() throws IOException
     {
         return value;

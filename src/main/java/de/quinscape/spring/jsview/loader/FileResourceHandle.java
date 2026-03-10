@@ -1,5 +1,6 @@
 package de.quinscape.spring.jsview.loader;
 
+import de.quinscape.spring.jsview.JsViewException;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,9 @@ public class FileResourceHandle<T>
     /** current content */
     private volatile Object content;
 
+    private boolean eager;
+
+
     public FileResourceHandle(
         File file,
         ResourceConverter<T> processor
@@ -43,6 +47,19 @@ public class FileResourceHandle<T>
     public boolean isWritable()
     {
         return true;
+    }
+
+
+    @Override
+    public boolean isEager()
+    {
+        return eager;
+    }
+
+
+    public void setEager(boolean eager)
+    {
+        this.eager = eager;
     }
 
 
@@ -98,6 +115,17 @@ public class FileResourceHandle<T>
         }
 
         content = null;
+        if (isEager())
+        {
+            try
+            {
+                getContent();
+            }
+            catch (IOException e)
+            {
+                throw new JsViewException(e);
+            }
+        }
     }
 
 

@@ -17,6 +17,13 @@ public interface ResourceHandle<T>
     boolean isWritable();
 
     /**
+     * Returns <code>true</code> if the resource is marked as eager. Eager handles will have their {@link #getContent()}
+     * called right after they're flushed.
+     * @return
+     */
+    boolean isEager();
+
+    /**
      * Returns the contents of this handle. Might be <code>null</code> to indicate a missing resource.
      * <p>
      *     If this handle is backed by hot-reload capable ResourceLoader, the contents returned will

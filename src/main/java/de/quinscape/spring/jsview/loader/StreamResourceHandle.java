@@ -40,6 +40,13 @@ public class StreamResourceHandle<T>
 
 
     @Override
+    public boolean isEager()
+    {
+        return false;
+    }
+
+
+    @Override
     public T getContent()
     {
         return content;
