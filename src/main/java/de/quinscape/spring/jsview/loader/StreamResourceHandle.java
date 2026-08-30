@@ -28,7 +28,7 @@ public class StreamResourceHandle<T>
 
         this.path = path;
         final InputStream is = servletContext.getResourceAsStream(path);
-        content = processor.readStream(is);
+        content = is != null ? processor.readStream(is) : null;
     }
 
 
