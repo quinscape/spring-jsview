@@ -36,7 +36,12 @@ public class JSONUtil
         util.setObjectSupport(OBJECT_SUPPORT);
         DEFAULT_PARSER = jsonParser;
         DEFAULT_UTIL = util;
-        DEFAULT_GENERATOR = JSON.defaultJSON();
+        // Not JSON.defaultJSON(): that is svenson's process-wide singleton and it builds its own
+        // JavaObjectSupport. TypeAnalyzer caches class info by class alone rather than per support, so
+        // whichever support analyzes a type first answers for every caller of that type. Generating
+        // through the same support the parser and the bean util use keeps that out of the hands of class
+        // loading order.
+        DEFAULT_GENERATOR = new JSON(OBJECT_SUPPORT, '"');
     }
 
     public static String ok()
